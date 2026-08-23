@@ -1,0 +1,32 @@
+name: Build iOS Native Chams Dylib
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout Repository Code
+      uses: actions/checkout@v4
+
+    - name: Set up iOS SDK Toolchain
+      run: xcodebuild -version
+        
+    - name: Compile Native C++ Framework into Arm64 Dylib
+      run: |
+        clang++ -dynamiclib -isysroot "$(xcrun --sdk iphoneos --show-sdk-path)" \
+        -arch arm64 -miphoneos-version-min=14.0 -std=c++17 \
+        -framework UIKit -framework Foundation \
+        -I. \
+        main.mm \
+        -o libiOSChams.dylib
+
+    - name: Upload Compiled Dylib File As Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: iOS-Chams-Dylib
+        path: libiOSChams.dylib
